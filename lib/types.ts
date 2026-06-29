@@ -135,6 +135,7 @@ export type ColdOutreach = "yes" | "no" | "kinda"
 export interface Profile {
   id: number
   name: string
+  email: string | null
   skills: string[]
   experience: Experience
   portfolio: Portfolio

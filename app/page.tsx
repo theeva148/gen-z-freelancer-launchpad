@@ -60,7 +60,7 @@ export default async function LandingPage() {
           un<span className="text-primary">bossed</span>
         </span>
         <Button
-          render={<Link href={primaryHref} />}
+          render={<Link href={hasProfile ? "/dashboard" : "/login"} />}
           nativeButton={false}
           variant="ghost"
           size="sm"

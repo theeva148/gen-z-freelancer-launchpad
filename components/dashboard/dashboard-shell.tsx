@@ -10,8 +10,16 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import type { Profile } from "@/lib/types"
 import { logout } from "@/app/dashboard/actions"
@@ -113,13 +121,18 @@ export function DashboardShell({ profile }: { profile: Profile }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-border px-5 py-4 md:hidden">
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu">
-            <Menu className="size-5" />
-          </button>
-          <span className="font-display font-bold">
-            un<span className="text-primary">bossed</span>
-          </span>
+        <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+          <div className="flex items-center gap-3 md:hidden">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu">
+              <Menu className="size-5" />
+            </button>
+            <span className="font-display font-bold">
+              un<span className="text-primary">bossed</span>
+            </span>
+          </div>
+          <div className="ml-auto">
+            <AccountMenu profile={profile} />
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 md:px-8">
@@ -131,5 +144,57 @@ export function DashboardShell({ profile }: { profile: Profile }) {
         </main>
       </div>
     </div>
+  )
+}
+
+function AccountMenu({ profile }: { profile: Profile }) {
+  const initials = profile.name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-2.5 transition-colors hover:border-primary/50"
+            aria-label="Account menu"
+          >
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+              {initials || "U"}
+            </span>
+            <span className="hidden max-w-32 truncate text-sm font-medium sm:block">
+              {profile.name}
+            </span>
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-60">
+        <div className="flex flex-col gap-0.5 px-2 py-2">
+          <span className="text-sm font-semibold text-foreground">{profile.name}</span>
+          {profile.email && (
+            <span className="truncate text-xs font-normal text-muted-foreground">
+              {profile.email}
+            </span>
+          )}
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => {
+            void logout()
+          }}
+        >
+          <LogOut className="size-4" />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

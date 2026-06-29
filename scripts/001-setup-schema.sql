@@ -3,6 +3,8 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id SERIAL PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
+  email VARCHAR(255),
+  password_hash TEXT,
   skills TEXT[] NOT NULL DEFAULT '{}',
   experience VARCHAR(20) NOT NULL CHECK (experience IN ('beginner', 'intermediate', 'advanced')),
   portfolio VARCHAR(20) NOT NULL CHECK (portfolio IN ('yes_link', 'yes_no_link', 'not_yet')),
@@ -14,6 +16,9 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS portfolio_examples TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS password_hash TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_email ON profiles(lower(email)) WHERE email IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS leads (
   id SERIAL PRIMARY KEY,

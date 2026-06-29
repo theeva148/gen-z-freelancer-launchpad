@@ -15,12 +15,18 @@ import { completeOnboarding } from "@/app/onboarding/actions"
 
 interface FormState {
   name: string
+  email: string
+  password: string
   skills: string[]
   portfolio: Portfolio | null
   portfolio_examples: string
   prior_clients: PriorClients | null
   income_goal: string
   cold_outreach: ColdOutreach | null
+}
+
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 }
 
 const TOTAL = 5
@@ -30,6 +36,8 @@ export function OnboardingFlow() {
   const [pending, startTransition] = useTransition()
   const [form, setForm] = useState<FormState>({
     name: "",
+    email: "",
+    password: "",
     skills: [],
     portfolio: null,
     portfolio_examples: "",
@@ -61,7 +69,11 @@ export function OnboardingFlow() {
   const canContinue = (() => {
     switch (step) {
       case 1:
-        return form.name.trim().length > 0
+        return (
+          form.name.trim().length > 0 &&
+          isEmail(form.email) &&
+          form.password.length >= 8
+        )
       case 2:
         return form.skills.length > 0
       case 3:
@@ -89,6 +101,8 @@ export function OnboardingFlow() {
       try {
         await completeOnboarding({
           name: form.name,
+          email: form.email,
+          password: form.password,
           skills: form.skills,
           portfolio: form.portfolio!,
           portfolio_examples: form.portfolio_examples,
@@ -99,7 +113,10 @@ export function OnboardingFlow() {
       } catch (err) {
         // redirect() throws internally; only surface real errors
         if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) return
-        toast.error("Something went wrong. Try again.")
+        const msg = err instanceof Error ? err.message : "Something went wrong. Try again."
+        // If the account already exists, send them back to step 1 to fix the email.
+        if (msg.toLowerCase().includes("already exists")) setStep(1)
+        toast.error(msg)
       }
     })
   }
@@ -119,22 +136,73 @@ export function OnboardingFlow() {
 
       <div className="flex flex-1 flex-col justify-center py-10">
         {step === 1 && (
-          <Step title="What's your name?" subtitle="We'll keep it personal.">
-            <Input
-              autoFocus
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="Your name"
-              className="h-14 text-lg"
-              onKeyDown={(e) => {
-                if (
-                  e.key === "Enter" &&
-                  !e.nativeEvent.isComposing &&
-                  e.keyCode !== 229
-                )
-                  next()
-              }}
-            />
+          <Step
+            title="Create your account"
+            subtitle="This is how you'll log back in and pick up where you left off."
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Your name
+                </label>
+                <Input
+                  autoFocus
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  placeholder="Your name"
+                  className="h-12 text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
+                  placeholder="you@example.com"
+                  className="h-12 text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
+                  placeholder="At least 8 characters"
+                  className="h-12 text-base"
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.nativeEvent.isComposing &&
+                      e.keyCode !== 229
+                    )
+                      next()
+                  }}
+                />
+                {form.password.length > 0 && form.password.length < 8 && (
+                  <p className="text-xs text-muted-foreground">
+                    {8 - form.password.length} more character
+                    {8 - form.password.length === 1 ? "" : "s"} to go.
+                  </p>
+                )}
+              </div>
+              <p className="pt-1 text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Log in
+                </Link>
+              </p>
+            </div>
           </Step>
         )}
 
