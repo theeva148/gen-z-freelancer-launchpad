@@ -1,7 +1,8 @@
+import { anthropic } from "@ai-sdk/anthropic"
 import type { Profile } from "@/lib/types"
 
-// Anthropic via the Vercel AI Gateway (zero-config in v0).
-export const MODEL = "anthropic/claude-sonnet-4.6"
+// Anthropic direct provider, using ANTHROPIC_API_KEY from the environment.
+export const MODEL = anthropic("claude-sonnet-4-6")
 
 const EXPERIENCE_LABEL: Record<string, string> = {
   beginner: "a beginner just starting out",
