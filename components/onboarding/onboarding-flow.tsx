@@ -6,15 +6,16 @@ import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { SKILLS } from "@/lib/types"
 import type {
   ColdOutreach,
   Experience,
   Portfolio,
   PriorClients,
 } from "@/lib/types"
+import { SkillCombobox } from "@/components/onboarding/skill-combobox"
 import { completeOnboarding } from "@/app/onboarding/actions"
 
 interface FormState {
@@ -22,6 +23,7 @@ interface FormState {
   skills: string[]
   experience: Experience | null
   portfolio: Portfolio | null
+  portfolio_examples: string
   prior_clients: PriorClients | null
   income_goal: string
   cold_outreach: ColdOutreach | null
@@ -37,10 +39,18 @@ export function OnboardingFlow() {
     skills: [],
     experience: null,
     portfolio: null,
+    portfolio_examples: "",
     prior_clients: null,
     income_goal: "",
     cold_outreach: null,
   })
+
+  function addCustomSkill(skill: string) {
+    setForm((f) => ({
+      ...f,
+      skills: f.skills.includes(skill) ? f.skills : [...f.skills, skill],
+    }))
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -91,6 +101,7 @@ export function OnboardingFlow() {
           skills: form.skills,
           experience: form.experience!,
           portfolio: form.portfolio!,
+          portfolio_examples: form.portfolio_examples,
           prior_clients: form.prior_clients!,
           income_goal: Number(form.income_goal),
           cold_outreach: form.cold_outreach!,
@@ -140,28 +151,13 @@ export function OnboardingFlow() {
         {step === 2 && (
           <Step
             title="What do you do?"
-            subtitle="Pick everything that fits. You contain multitudes."
+            subtitle="Search the full list of freelance work, or type your own. Pick everything that fits."
           >
-            <div className="flex flex-wrap gap-2.5">
-              {SKILLS.map((skill) => {
-                const active = form.skills.includes(skill)
-                return (
-                  <button
-                    key={skill}
-                    type="button"
-                    onClick={() => toggleSkill(skill)}
-                    className={cn(
-                      "rounded-full border px-4 py-2.5 text-sm font-medium capitalize transition-colors",
-                      active
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-foreground hover:border-primary/50",
-                    )}
-                  >
-                    {skill}
-                  </button>
-                )
-              })}
-            </div>
+            <SkillCombobox
+              selected={form.skills}
+              onToggle={toggleSkill}
+              onAddCustom={addCustomSkill}
+            />
           </Step>
         )}
 
@@ -192,19 +188,41 @@ export function OnboardingFlow() {
             title="Got a portfolio or past work?"
             subtitle="Proof helps, but it's not required to start."
           >
-            <ChoiceList
-              value={form.portfolio}
-              onChange={(v) => set("portfolio", v as Portfolio)}
-              options={[
-                { value: "yes_link", label: "Yes, with a link", hint: "It's live somewhere" },
-                {
-                  value: "yes_no_link",
-                  label: "Yes, but no link yet",
-                  hint: "Work exists, not hosted",
-                },
-                { value: "not_yet", label: "Not yet", hint: "Starting fresh" },
-              ]}
-            />
+            <div className="space-y-6">
+              <ChoiceList
+                value={form.portfolio}
+                onChange={(v) => set("portfolio", v as Portfolio)}
+                options={[
+                  { value: "yes_link", label: "Yes, with a link", hint: "It's live somewhere" },
+                  {
+                    value: "yes_no_link",
+                    label: "Yes, but no link yet",
+                    hint: "Work exists, not hosted",
+                  },
+                  { value: "not_yet", label: "Not yet", hint: "Starting fresh" },
+                ]}
+              />
+              {form.portfolio && form.portfolio !== "not_yet" && (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <label className="mb-2 block text-sm font-medium text-muted-foreground">
+                    {form.portfolio === "yes_link"
+                      ? "Drop your links + a few standout examples"
+                      : "Describe a few standout work examples"}
+                  </label>
+                  <Textarea
+                    value={form.portfolio_examples}
+                    onChange={(e) => set("portfolio_examples", e.target.value)}
+                    placeholder={
+                      "e.g.\nhttps://yoursite.com/work\n- Rebranded a coffee shop's whole identity\n- Built a Shopify store that hit $20k/mo\n- Wrote a newsletter that grew to 5k subs"
+                    }
+                    className="min-h-36 resize-none text-base leading-relaxed"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    The more specific you are, the sharper your AI strategy, rates, and outreach will be.
+                  </p>
+                </div>
+              )}
+            </div>
           </Step>
         )}
 

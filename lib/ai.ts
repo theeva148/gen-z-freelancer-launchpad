@@ -23,12 +23,16 @@ const OUTREACH_LABEL: Record<string, string> = {
 }
 
 export function describeProfile(p: Profile): string {
-  return [
+  const lines = [
     `Name: ${p.name}`,
     `Skills: ${p.skills.join(", ") || "general freelancing"}`,
     `Experience: ${EXPERIENCE_LABEL[p.experience] ?? p.experience}`,
     `Track record: ${PRIOR_LABEL[p.prior_clients] ?? p.prior_clients}`,
     `Monthly income goal: $${p.income_goal}`,
     `Cold outreach: ${OUTREACH_LABEL[p.cold_outreach] ?? p.cold_outreach}`,
-  ].join("\n")
+  ]
+  if (p.portfolio_examples?.trim()) {
+    lines.push(`Portfolio / work examples:\n${p.portfolio_examples.trim()}`)
+  }
+  return lines.join("\n")
 }

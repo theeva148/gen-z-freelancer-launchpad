@@ -47,11 +47,13 @@ CREATE TABLE IF NOT EXISTS profiles (
   skills TEXT[] NOT NULL DEFAULT '{}',
   experience VARCHAR(20) NOT NULL CHECK (experience IN ('beginner', 'intermediate', 'advanced')),
   portfolio VARCHAR(20) NOT NULL CHECK (portfolio IN ('yes_link', 'yes_no_link', 'not_yet')),
+  portfolio_examples TEXT,
   prior_clients VARCHAR(20) NOT NULL CHECK (prior_clients IN ('never', '1-3', 'more_than_3')),
   income_goal INT NOT NULL DEFAULT 0,
   cold_outreach VARCHAR(10) NOT NULL CHECK (cold_outreach IN ('yes', 'no', 'kinda')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS portfolio_examples TEXT;
 CREATE TABLE IF NOT EXISTS leads (
   id SERIAL PRIMARY KEY,
   profile_id INT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
