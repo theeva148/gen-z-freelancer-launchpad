@@ -7,7 +7,7 @@ import type { Lead } from "@/lib/types"
 
 export const maxDuration = 60
 
-const schema = z.object({
+const extractSchema = z.object({
   name: z.string().describe("The person's full name. Empty string if unknown."),
   role: z
     .string()
@@ -20,6 +20,9 @@ const schema = z.object({
     .describe(
       "Where this lead came from / where to reach them, e.g. LinkedIn, Instagram, Email, X. Empty string if unclear.",
     ),
+})
+
+const extractWithOutreachSchema = extractSchema.extend({
   outreach_message: z
     .string()
     .describe(
@@ -38,16 +41,24 @@ export async function POST(req: Request) {
   const text = typeof body?.text === "string" ? body.text.trim() : ""
   if (!text) return new Response("No text provided", { status: 400 })
 
+  // Optional fields from dialog
+  const email = typeof body?.email === "string" ? body.email.trim() : null
+  const phone = typeof body?.phone === "string" ? body.phone.trim() : null
+  const stage = typeof body?.stage === "string" ? body.stage.trim() : "Contacted"
+  const niche = typeof body?.niche === "string" ? body.niche.trim() : null
+  const draftMessage = body?.draftMessage === true
+
   let output
   try {
     const result = await generateText({
       model: MODEL,
-      output: Output.object({ schema }),
-      system:
-        "You extract structured contact details from messy text (LinkedIn URLs/bios, email signatures, social profiles, pasted notes) and draft tailored cold outreach. Infer sensibly; never fabricate a name that isn't implied. Outreach must sound like a real Gen Z freelancer, not a template.",
-      prompt: `Extract this lead and draft outreach.\n\nFREELANCER (the sender):\n${describeProfile(
-        profile,
-      )}\n\nPASTED LEAD INFO:\n"""\n${text.slice(0, 4000)}\n"""`,
+      output: Output.object({ schema: draftMessage ? extractWithOutreachSchema : extractSchema }),
+      system: draftMessage
+        ? "You extract structured contact details from messy text (LinkedIn URLs/bios, email signatures, social profiles, pasted notes) and draft tailored cold outreach. Extract ONLY what is explicitly in the text — do NOT visit URLs or invent information. If a field is not present, return empty string. Outreach must sound like a real Gen Z freelancer, not a template."
+        : "You extract structured contact details from messy text (LinkedIn URLs/bios, email signatures, social profiles, pasted notes). Extract ONLY what is explicitly stated in the text — do NOT visit URLs, do NOT guess, do NOT invent any information. If a field is not present, return empty string.",
+      prompt: draftMessage
+        ? `Extract this lead and draft outreach.\n\nFREELANCER (the sender):\n${describeProfile(profile)}\n\nPASTED LEAD INFO:\n"""\n${text.slice(0, 4000)}\n"""`
+        : `Extract this lead's contact details.\n\nPASTED LEAD INFO:\n"""\n${text.slice(0, 4000)}\n"""`,
     })
     output = result.output
   } catch (err) {
@@ -60,8 +71,8 @@ export async function POST(req: Request) {
   const profileId = await requireProfileId()
   const { rows } = await query(
     `INSERT INTO leads
-       (profile_id, name, role, company, platform, outreach_message, suggested_followup)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (profile_id, name, role, company, platform, email, phone, stage, niche, outreach_message, suggested_followup)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       profileId,
@@ -69,8 +80,12 @@ export async function POST(req: Request) {
       output.role?.trim() || null,
       output.company?.trim() || null,
       output.platform?.trim() || null,
-      output.outreach_message?.trim() || null,
-      output.suggested_followup?.trim() || null,
+      email || null,
+      phone || null,
+      stage,
+      niche || null,
+      draftMessage ? (output as z.infer<typeof extractWithOutreachSchema>).outreach_message?.trim() || null : null,
+      draftMessage ? (output as z.infer<typeof extractWithOutreachSchema>).suggested_followup?.trim() || null : null,
     ],
   )
 
