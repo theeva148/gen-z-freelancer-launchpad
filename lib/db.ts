@@ -5,11 +5,11 @@ import { attachDatabasePool } from "@vercel/functions"
 
 const signer = new Signer({
   credentials: awsCredentialsProvider({
-    roleArn: process.env.AWS_ROLE_ARN,
-    clientConfig: { region: process.env.AWS_REGION },
+    roleArn: process.env.AWS_ROLE_ARN!,
+    clientConfig: { region: process.env.AWS_REGION! },
   }),
-  region: process.env.AWS_REGION,
-  hostname: process.env.PGHOST,
+  region: process.env.AWS_REGION!,
+  hostname: process.env.PGHOST!,
   username: process.env.PGUSER || "postgres",
   port: 5432,
 })
@@ -73,9 +73,10 @@ CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(profile_id, stage);
 CREATE TABLE IF NOT EXISTS scheduled_posts (
   id SERIAL PRIMARY KEY,
   profile_id INT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  platform VARCHAR(20) NOT NULL CHECK (platform IN ('LinkedIn', 'Twitter', 'TikTok')),
+  platform VARCHAR(40) NOT NULL,
+  topic VARCHAR(300),
   content TEXT NOT NULL,
-  scheduled_for TIMESTAMPTZ NOT NULL,
+  scheduled_for TIMESTAMPTZ,
   status VARCHAR(20) NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'posted')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -54,14 +54,13 @@ export interface Lead {
   updated_at: string
 }
 
-export type SocialPlatform = "LinkedIn" | "Twitter" | "TikTok"
-
 export interface ScheduledPost {
   id: number
   profile_id: number
-  platform: SocialPlatform
+  platform: string
+  topic: string | null
   content: string
-  scheduled_for: string
+  scheduled_for: string | null
   status: "scheduled" | "posted"
   created_at: string
 }

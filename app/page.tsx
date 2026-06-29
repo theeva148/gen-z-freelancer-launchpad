@@ -59,8 +59,13 @@ export default async function LandingPage() {
         <span className="font-display text-xl font-bold tracking-tight">
           un<span className="text-primary">bossed</span>
         </span>
-        <Button asChild variant="ghost" size="sm">
-          <Link href={primaryHref}>{hasProfile ? "Dashboard" : "Log in"}</Link>
+        <Button
+          render={<Link href={primaryHref} />}
+          nativeButton={false}
+          variant="ghost"
+          size="sm"
+        >
+          {hasProfile ? "Dashboard" : "Log in"}
         </Button>
       </header>
 
@@ -82,11 +87,14 @@ export default async function LandingPage() {
         </p>
 
         <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button asChild size="lg" className="h-12 px-7 text-base font-semibold">
-            <Link href={primaryHref}>
-              Start Free
-              <ArrowRight className="size-4" />
-            </Link>
+          <Button
+            render={<Link href={primaryHref} />}
+            nativeButton={false}
+            size="lg"
+            className="h-12 px-7 text-base font-semibold"
+          >
+            Start Free
+            <ArrowRight className="size-4" />
           </Button>
           <span className="text-sm text-muted-foreground">
             No card. No boss. No limits.
@@ -138,11 +146,13 @@ export default async function LandingPage() {
             <p className="font-display text-xl font-bold leading-snug text-balance">
               Your empire starts with one reply.
             </p>
-            <Button asChild className="mt-6 w-full font-semibold">
-              <Link href={primaryHref}>
-                Start Free
-                <ArrowRight className="size-4" />
-              </Link>
+            <Button
+              render={<Link href={primaryHref} />}
+              nativeButton={false}
+              className="mt-6 w-full font-semibold"
+            >
+              Start Free
+              <ArrowRight className="size-4" />
             </Button>
           </div>
         </div>
