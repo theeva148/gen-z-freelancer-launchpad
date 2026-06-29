@@ -9,19 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import type {
-  ColdOutreach,
-  Experience,
-  Portfolio,
-  PriorClients,
-} from "@/lib/types"
+import type { ColdOutreach, Portfolio, PriorClients } from "@/lib/types"
 import { SkillCombobox } from "@/components/onboarding/skill-combobox"
 import { completeOnboarding } from "@/app/onboarding/actions"
 
 interface FormState {
   name: string
   skills: string[]
-  experience: Experience | null
   portfolio: Portfolio | null
   portfolio_examples: string
   prior_clients: PriorClients | null
@@ -29,7 +23,7 @@ interface FormState {
   cold_outreach: ColdOutreach | null
 }
 
-const TOTAL = 6
+const TOTAL = 5
 
 export function OnboardingFlow() {
   const [step, setStep] = useState(1)
@@ -37,7 +31,6 @@ export function OnboardingFlow() {
   const [form, setForm] = useState<FormState>({
     name: "",
     skills: [],
-    experience: null,
     portfolio: null,
     portfolio_examples: "",
     prior_clients: null,
@@ -72,12 +65,10 @@ export function OnboardingFlow() {
       case 2:
         return form.skills.length > 0
       case 3:
-        return form.experience !== null
-      case 4:
         return form.portfolio !== null
-      case 5:
+      case 4:
         return form.prior_clients !== null
-      case 6:
+      case 5:
         return form.cold_outreach !== null && Number(form.income_goal) > 0
       default:
         return false
@@ -99,7 +90,6 @@ export function OnboardingFlow() {
         await completeOnboarding({
           name: form.name,
           skills: form.skills,
-          experience: form.experience!,
           portfolio: form.portfolio!,
           portfolio_examples: form.portfolio_examples,
           prior_clients: form.prior_clients!,
@@ -162,31 +152,9 @@ export function OnboardingFlow() {
         )}
 
         {step === 3 && (
-          <Step title="How experienced are you?" subtitle="Be honest, no judgment.">
-            <ChoiceList
-              value={form.experience}
-              onChange={(v) => set("experience", v as Experience)}
-              options={[
-                { value: "beginner", label: "Beginner", hint: "Just getting started" },
-                {
-                  value: "intermediate",
-                  label: "Intermediate",
-                  hint: "I've got some reps in",
-                },
-                {
-                  value: "advanced",
-                  label: "Advanced",
-                  hint: "I know my craft cold",
-                },
-              ]}
-            />
-          </Step>
-        )}
-
-        {step === 4 && (
           <Step
             title="Got a portfolio or past work?"
-            subtitle="Proof helps, but it's not required to start."
+            subtitle="Share your best work — we'll read it to gauge your level and tailor everything to you."
           >
             <div className="space-y-6">
               <ChoiceList
@@ -226,7 +194,7 @@ export function OnboardingFlow() {
           </Step>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <Step
             title="Have you had paying clients?"
             subtitle="This shapes your strategy and rates."
@@ -247,7 +215,7 @@ export function OnboardingFlow() {
           </Step>
         )}
 
-        {step === 6 && (
+        {step === 5 && (
           <Step
             title="Last one. Let's talk money."
             subtitle="Your goal and how you feel about cold outreach."

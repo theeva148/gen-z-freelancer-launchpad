@@ -2,13 +2,13 @@
 
 import { redirect } from "next/navigation"
 import { query } from "@/lib/db"
+import { inferExperience } from "@/lib/ai"
 import { setProfileCookie } from "@/lib/session"
-import type { ColdOutreach, Experience, Portfolio, PriorClients } from "@/lib/types"
+import type { ColdOutreach, Portfolio, PriorClients } from "@/lib/types"
 
 export interface OnboardingInput {
   name: string
   skills: string[]
-  experience: Experience
   portfolio: Portfolio
   portfolio_examples?: string
   prior_clients: PriorClients
@@ -22,6 +22,14 @@ export async function completeOnboarding(input: OnboardingInput) {
 
   const examples = input.portfolio_examples?.trim().slice(0, 4000) || null
 
+  // Experience level is judged from the work examples (with prior clients as a
+  // secondary signal) rather than self-reported.
+  const experience = await inferExperience({
+    skills: input.skills,
+    prior_clients: input.prior_clients,
+    portfolio_examples: examples,
+  })
+
   const { rows } = await query(
     `INSERT INTO profiles
        (name, skills, experience, portfolio, portfolio_examples, prior_clients, income_goal, cold_outreach)
@@ -30,7 +38,7 @@ export async function completeOnboarding(input: OnboardingInput) {
     [
       name,
       input.skills,
-      input.experience,
+      experience,
       input.portfolio,
       examples,
       input.prior_clients,
