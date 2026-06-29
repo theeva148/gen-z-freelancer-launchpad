@@ -19,15 +19,22 @@ export async function POST() {
   const profile = await getProfile()
   if (!profile) return new Response("Unauthorized", { status: 401 })
 
-  const { output } = await generateText({
-    model: MODEL,
-    output: Output.object({ schema }),
-    system:
-      "You are a pricing strategist for freelancers. Give realistic, current market-based numbers in USD for someone at the stated experience level. Be encouraging but grounded.",
-    prompt: `Recommend starting rates for this freelancer based on their skill, experience, and current market norms:\n\n${describeProfile(
-      profile,
-    )}`,
-  })
+  try {
+    const { output } = await generateText({
+      model: MODEL,
+      output: Output.object({ schema }),
+      system:
+        "You are a pricing strategist for freelancers. Give realistic, current market-based numbers in USD for someone at the stated experience level. Be encouraging but grounded.",
+      prompt: `Recommend starting rates for this freelancer based on their skill, experience, and current market norms:\n\n${describeProfile(
+        profile,
+      )}`,
+    })
 
-  return Response.json(output)
+    return Response.json(output)
+  } catch (err) {
+    return Response.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    )
+  }
 }

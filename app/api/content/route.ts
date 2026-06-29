@@ -24,15 +24,22 @@ export async function POST(req: Request) {
   const topic =
     typeof body?.topic === "string" ? body.topic.slice(0, 300) : ""
 
-  const { output } = await generateText({
-    model: MODEL,
-    output: Output.object({ schema }),
-    system:
-      "You are a social content strategist for Gen Z freelancers building a personal brand. Write an authentic, scroll-stopping post that builds authority and attracts clients. Match the platform's native tone: LinkedIn (professional but human), Instagram (warm, story-driven with line breaks), TikTok (hook-first script idea), X/Twitter (punchy, concise), Threads (casual, conversational). No hashtag spam.",
-    prompt: `Write one ${platform} post for this freelancer.${
-      topic ? ` Topic/angle to focus on: "${topic}".` : ""
-    }\n\n${describeProfile(profile)}`,
-  })
+  try {
+    const { output } = await generateText({
+      model: MODEL,
+      output: Output.object({ schema }),
+      system:
+        "You are a social content strategist for Gen Z freelancers building a personal brand. Write an authentic, scroll-stopping post that builds authority and attracts clients. Match the platform's native tone: LinkedIn (professional but human), Instagram (warm, story-driven with line breaks), TikTok (hook-first script idea), X/Twitter (punchy, concise), Threads (casual, conversational). No hashtag spam.",
+      prompt: `Write one ${platform} post for this freelancer.${
+        topic ? ` Topic/angle to focus on: "${topic}".` : ""
+      }\n\n${describeProfile(profile)}`,
+    })
 
-  return Response.json(output)
+    return Response.json(output)
+  } catch (err) {
+    return Response.json(
+      { error: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    )
+  }
 }

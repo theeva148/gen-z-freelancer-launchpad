@@ -30,10 +30,13 @@ export function RatesModule({ profile }: { profile: Profile }) {
     setLoading(true)
     try {
       const res = await fetch("/api/rates", { method: "POST" })
-      if (!res.ok) throw new Error()
-      setData(await res.json())
-    } catch {
-      toast.error("Couldn't calculate your rates. Try again.")
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || "Request failed")
+      setData(json)
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't calculate your rates. Try again.",
+      )
     } finally {
       setLoading(false)
     }

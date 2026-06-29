@@ -26,11 +26,13 @@ export function OutreachModule({ profile }: { profile: Profile }) {
     setLoading(true)
     try {
       const res = await fetch("/api/outreach", { method: "POST" })
-      if (!res.ok) throw new Error()
       const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || "Request failed")
       setMessages(data.messages)
-    } catch {
-      toast.error("Couldn't write your messages. Try again.")
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't write your messages. Try again.",
+      )
     } finally {
       setLoading(false)
     }

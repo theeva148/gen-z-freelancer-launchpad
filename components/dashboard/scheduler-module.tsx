@@ -62,13 +62,15 @@ export function SchedulerModule() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform, topic }),
       })
-      if (!res.ok) throw new Error()
       const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Request failed')
       setContent(json.content)
       if (json.suggestedTopic && !topic) setTopic(json.suggestedTopic)
       toast.success('Post drafted')
-    } catch {
-      toast.error('Could not generate a post. Try again.')
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Could not generate a post. Try again.',
+      )
     } finally {
       setGenerating(false)
     }

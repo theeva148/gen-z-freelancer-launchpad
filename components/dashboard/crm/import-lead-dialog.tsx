@@ -33,13 +33,18 @@ export function ImportLeadDialog({ onImported }: { onImported: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const json = await res.json().catch(() => null)
+        throw new Error(json?.error || "Could not parse that. Try adding more detail.")
+      }
       setText("")
       setOpen(false)
       onImported()
       toast.success("Lead imported and outreach drafted")
-    } catch {
-      toast.error("Could not parse that. Try adding more detail.")
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not parse that. Try adding more detail.",
+      )
     } finally {
       setLoading(false)
     }

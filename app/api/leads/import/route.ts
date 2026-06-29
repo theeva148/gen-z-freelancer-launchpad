@@ -50,8 +50,11 @@ export async function POST(req: Request) {
       )}\n\nPASTED LEAD INFO:\n"""\n${text.slice(0, 4000)}\n"""`,
     })
     output = result.output
-  } catch {
-    return new Response("Could not parse lead", { status: 502 })
+  } catch (err) {
+    return Response.json(
+      { error: err instanceof Error ? err.message : "Could not parse lead" },
+      { status: 502 },
+    )
   }
 
   const profileId = await requireProfileId()
